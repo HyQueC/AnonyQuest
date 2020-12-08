@@ -1,0 +1,50 @@
+﻿@page "/questionnaire/create"
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager navigationManager
+@inject IQuestionnaireRepository questionnaireRepository
+@inject IUsersRepository UserRepository
+@attribute [Authorize]
+
+
+<h3>Criar Questionário</h3>
+
+<div class="col-md-12">
+    <div class="row">
+        <div class="col-md-3">
+            <label>Autor:</label>
+            <input type="email" name="AuthorEmail" disabled="disabled" placeholder="@AuthorEmail">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-9">
+            <QuestionnaireForm Questionnaire="@Questionnaire" OnValidSubmit="SaveQuestionnaire" />
+        </div>
+    </div>
+</div>
+
+@code {
+
+    private Questionnaire Questionnaire = new Questionnaire();
+    private string AuthorEmail;
+
+    protected async override Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        AuthorEmail = await UserRepository.GetUserEmail(user);
+    }
+
+    private async Task SaveQuestionnaire()
+    {
+        try
+        {
+            var questionnaireId = await questionnaireRepository.CreateQuestionnaire(Questionnaire);
+            navigationManager.NavigateTo($"/");
+        }
+        catch (Exception)
+        {
+
+        }
+    }
+}

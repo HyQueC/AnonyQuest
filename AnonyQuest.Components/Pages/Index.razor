@@ -1,0 +1,30 @@
+﻿@page "/"
+@page "/index"
+@inject IQuestionnaireRepository questionnaireRepository
+@attribute [Authorize]
+
+    <div>
+        <h3>Seus Questionários:</h3>
+        <QuestionnaireTable Questionnaires="@PersonalQuestionnaires" TableId="YourQuestionnaireTable" />
+    </div>
+    <div>
+        <h3>Questionários Pendentes:</h3>
+        <QuestionnaireTable Questionnaires="@ReceivedQuestionnaires" TableId="ReceivedQuestionnairesTable"/>
+    </div>
+
+
+
+@code{
+    private List<Questionnaire> PersonalQuestionnaires;
+    private List<Questionnaire> ReceivedQuestionnaires;
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var response = await questionnaireRepository.GetIndexPageDTO();
+            PersonalQuestionnaires = response.PersonalQuestionnaires;
+            ReceivedQuestionnaires = response.ReceivedQuestionnaires;
+            StateHasChanged();
+        }
+    }
+}

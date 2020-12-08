@@ -1,0 +1,28 @@
+﻿<GenericTable Items="Questionnaires" TableId="@TableId">
+    <HeadTemplate>
+        <th scope="col">Autor</th>
+        <th scope="col">Título</th>
+        <th scope="col">Respostas</th>
+        <th scope="col">Data de Criação</th>
+        <th scope="col">Última Atualização</th>
+        <th scope="col">Tempo restante</th>
+    </HeadTemplate>
+    <RowTemplate Context="element">
+        <td class="tableEmailElement tooltip">
+            @element.Email
+            <span class="tooltiptext">@element.UserName</span>
+        </td>
+        <td>@element.Title</td>
+        <td>@element.TotalAnswerCount / @element.ReceiverQuestionnaires.Count</td>
+        <td>@element.CreatedDate</td>
+        <td>@element.LatestUpdateDate</td>
+        <td>@element.LatestUpdateDate</td>
+    </RowTemplate>
+</GenericTable>
+
+@code{ 
+    [Parameter]
+    public string TableId { get; set; }
+    [Parameter]
+    public List<Questionnaire> Questionnaires { get; set; }
+}

@@ -1,0 +1,84 @@
+﻿@using System.ComponentModel.DataAnnotations;
+
+<div class="col-md-12">
+    <EditForm Model="@Questionnaire" OnValidSubmit="OnDataAnnotationsValidated">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        @if (AnyInvalidEmail)
+        {
+            <span class="text-danger">Há algum Email inválido no campo de destinatários</span>
+        }
+        <div class="form-group col-md-6">
+            <label>Título:</label>
+            <div>
+                <InputText class="form-control" @bind-Value="@Questionnaire.Title" />
+                <ValidationMessage For="@(() => Questionnaire.Title)" />
+            </div>
+        </div>
+        <div class="form-group col-md-8">
+            <label>Destinatários:</label>
+            <div>
+                <InputTextArea class="form-control" placeholder="Insira os emails separados apenas por ;" @bind-Value="@ReceivingEmails" />
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <button class="btn btn-primary my-3" type="submit">Salvar Mudanças</button>
+            <button class="btn btn-secondary my-3 ml-2" type="submit"><i class="oi oi-plus"></i></button>
+        </div>
+
+        <h2>Perguntas:</h2>
+        <hr />
+        <div class="col-md-12">
+            <div class="form-group">
+                <div>
+                    <InputTextArea class="form-control" placeholder="Inclua o enunciado da pergunta" @bind-Value="@ReceivingEmails" />
+                </div>
+            </div>
+            <hr />
+            <div class="form-group">
+                <div>
+                    <InputTextArea class="form-control" placeholder="Inclua o enunciado da pergunta" @bind-Value="@ReceivingEmails" />
+                </div>
+            </div>
+            <hr />
+            <div class="form-group">
+                <div>
+                    <InputTextArea class="form-control" placeholder="Inclua o enunciado da pergunta" @bind-Value="@ReceivingEmails" />
+                </div>
+            </div>
+            <hr />
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public Questionnaire Questionnaire { get; set; }
+    [Parameter] public EventCallback OnValidSubmit { get; set; }
+
+    private bool AnyInvalidEmail = false;
+    private string ReceivingEmails = "";
+
+
+    private async Task OnDataAnnotationsValidated()
+    {
+        var emailList = ReceivingEmails.Split(';').ToList();
+
+        foreach (var email in emailList)
+        {
+            if (!IsValidEmail(email))
+            {
+                AnyInvalidEmail = true;
+                return;
+            }
+        }
+        Questionnaire.Destinatary = emailList;
+        await OnValidSubmit.InvokeAsync(null);
+    }
+
+    private bool IsValidEmail(string source)
+    {
+        return new EmailAddressAttribute().IsValid(source);
+    }
+}
+

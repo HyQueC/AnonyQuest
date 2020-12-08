@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UserSecretsId>aspnet-AnonyQuest.App-09AB1F92-2DDC-424A-83EF-81A7F0D56BD8</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Data\Migrations\20201012060816_Initial.cs" />
+    <Compile Remove="Data\Migrations\20201012060816_Initial.Designer.cs" />
+    <Compile Remove="Data\Migrations\20201012192241_Initial.cs" />
+    <Compile Remove="Data\Migrations\20201012192241_Initial.Designer.cs" />
+    <Compile Remove="Data\Migrations\20201012192329_Initial.cs" />
+    <Compile Remove="Data\Migrations\20201012192329_Initial.Designer.cs" />
+    <Compile Remove="Data\Migrations\20201012192510_Initial.cs" />
+    <Compile Remove="Data\Migrations\20201012192510_Initial.Designer.cs" />
+    <Compile Remove="Data\Migrations\20201012193026_Initial.cs" />
+    <Compile Remove="Data\Migrations\20201012193026_Initial.Designer.cs" />
+    <Compile Remove="Data\Migrations\20201012193045_Initial.cs" />
+    <Compile Remove="Data\Migrations\20201012193045_Initial.Designer.cs" />
+    <Compile Remove="Data\Migrations\20201012193905_Initial.cs" />
+    <Compile Remove="Data\Migrations\20201012193905_Initial.Designer.cs" />
+    <Compile Remove="Data\Migrations\20201012194051_Initial.cs" />
+    <Compile Remove="Data\Migrations\20201012194051_Initial.Designer.cs" />
+    <Compile Remove="Data\Migrations\20201012194309_Initial.cs" />
+    <Compile Remove="Data\Migrations\20201012194309_Initial.Designer.cs" />
+    <Compile Remove="Data\Migrations\20201207080254_UserIdToString.cs" />
+    <Compile Remove="Data\Migrations\20201207080254_UserIdToString.Designer.cs" />
+    <Compile Remove="Data\Migrations\20201207081005_UsrIdToStr.cs" />
+    <Compile Remove="Data\Migrations\20201207081005_UsrIdToStr.Designer.cs" />
+    <Compile Remove="Data\Migrations\20201207081108_UsrIdToStr.cs" />
+    <Compile Remove="Data\Migrations\20201207081108_UsrIdToStr.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="3.1.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="3.1.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.6" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.4" />
+    <PackageReference Include="WindowsAzure.Storage" Version="9.3.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AnonyQuest.Components\AnonyQuest.Components.csproj" />
+    <ProjectReference Include="..\AnonyQuest.Shared\AnonyQuest.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Repositories\" />
+  </ItemGroup>
+
+</Project>
