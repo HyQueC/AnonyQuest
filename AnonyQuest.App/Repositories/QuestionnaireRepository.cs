@@ -1,196 +1,143 @@
 ﻿using AnonyQuest.App.Data;
-using AnonyQuest.App.Helpers;
-using AnonyQuest.Shared.DTOs;
 using AnonyQuest.Shared.Entities;
-using AnonyQuest.Shared.Repositories;
-using System.Threading.Tasks;
-using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System;
+using System.Threading.Tasks;
+using AnonyQuest.Shared.DTOs;
+using AnonyQuest.Shared.Interfaces;
 
 namespace AnonyQuest.App.Repositories
 {
-    public class QuestionnaireRepository : IQuestionnaireRepository
+    public class QuestionnaireRepository : GenericRepository<Questionnaire>, IQuestionnaireRepository
     {
-        private readonly ApplicationDbContext context;
-        private readonly IAuthenticationStateService authenticationStateService;
 
-        public QuestionnaireRepository(ApplicationDbContext context,
-           IAuthenticationStateService authenticationStateService)
+        public QuestionnaireRepository(ApplicationDbContext context) : base(context)
         {
-            this.context = context;
-            this.authenticationStateService = authenticationStateService;
         }
 
-        public async Task<int> CreateQuestionnaire(Questionnaire questionnaire)
+        public async Task<Questionnaire> GetDetailsByUserAsync(int id, string currentUser)
         {
-            var userEmail = await authenticationStateService.GetCurrentUserEmail();
+            IQueryable<Questionnaire> query;
 
-            questionnaire.Email = userEmail;
-            context.Add(questionnaire);
-            await context.SaveChangesAsync();
-            return questionnaire.Id;
-        }
-
-        public async Task DeleteQuestionnaire(int Id)
-        {
-            var questionnaire = await context.Questionnaire.FindAsync(Id);
-            context.Remove(questionnaire);
-            await context.SaveChangesAsync();
-        }
-
-        public async Task<DetailsQuestionnaireDTO> GetDetailsQuestionnaireDTO(int id)
-        {
-            var questionnaire = await context.Questionnaire.Where(x => x.Id == id)
-                .Include(x => x.Questions).ThenInclude(x => x.Answers)
-                .Include(x => x.ReceiverQuestionnaires)
+            var questionnaireId = await _context
+                .Questionnaire.Where(x => x.Id == id)
+                .Select(q => q.AuthorEmail)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
-            if (questionnaire == null) { return null; }
 
-
-            //if (await context.QuestionnaireRatings.AnyAsync(x => x.QuestionnaireId == id))
+            if (questionnaireId.Equals(currentUser))
             {
-                //voteAverage = await context.QuestionnaireRatings.Where(x => x.QuestionnaireId == id)
-                //    .AverageAsync(x => x.Rate);
-
-                var userId = await authenticationStateService.GetCurrentUserId();
-
-                if (userId != null)
-                {
-                    //var userVoteDB = await context.QuestionnaireRatings
-                    //    .FirstOrDefaultAsync(x => x.QuestionnaireId == id && x.UserId == userId);
-
-                    //if (userVoteDB != null)
-                    //{
-                    //    uservote = userVoteDB.Rate;
-                    //}
-                }
+                query = from questionnaire in _context.Questionnaire
+                            where questionnaire.Id == id && questionnaire.AuthorEmail.Equals(currentUser)
+                            select new Questionnaire()
+                            {
+                                Id = questionnaire.Id,
+                                AuthorEmail = questionnaire.AuthorEmail,
+                                Title = questionnaire.Title,
+                                CreatedDate = questionnaire.CreatedDate,
+                                EndDate = questionnaire.EndDate,
+                                LatestUpdateDate = questionnaire.LatestUpdateDate,
+                                LatestEditDate = questionnaire.LatestEditDate,
+                                HasStarted = questionnaire.HasStarted,
+                                Questions = (from question in _context.Question
+                                             where question.QuestionnaireId == questionnaire.Id
+                                             select new Question() 
+                                             {
+                                                 Id = question.Id,
+                                                 Description = question.Description,
+                                                 CreatedDate = question.CreatedDate,
+                                                 LatestEditDate = question.LatestEditDate,
+                                                 QuestionnaireId = question.QuestionnaireId,
+                                                 Questionnaire = question.Questionnaire,
+                                                 Answers = (from answer in _context.Answer
+                                                            where answer.QuestionId == question.Id 
+                                                            && answer.FinalAnswer == true
+                                                            select answer).ToList()
+                                             }).ToList()
+                            };
+            }
+            else
+            {
+                query = from questionnaire in _context.Questionnaire
+                        where questionnaire.Id == id
+                        select new Questionnaire()
+                        {
+                            Id = questionnaire.Id,
+                            AuthorEmail = questionnaire.AuthorEmail,
+                            Title = questionnaire.Title,
+                            CreatedDate = questionnaire.CreatedDate,
+                            EndDate = questionnaire.EndDate,
+                            LatestUpdateDate = questionnaire.LatestUpdateDate,
+                            LatestEditDate = questionnaire.LatestEditDate,
+                            HasStarted = questionnaire.HasStarted,
+                            Questions = (from question in _context.Question
+                                         where question.QuestionnaireId == questionnaire.Id
+                                         select new Question()
+                                         {
+                                             Id = question.Id,
+                                             Description = question.Description,
+                                             CreatedDate = question.CreatedDate,
+                                             LatestEditDate = question.LatestEditDate,
+                                             QuestionnaireId = question.QuestionnaireId,
+                                             Questionnaire = question.Questionnaire,
+                                             Answers = (from answer in _context.Answer
+                                                        where answer.QuestionId == question.Id
+                                                        && answer.UserEmail.Equals(currentUser)
+                                                        select answer).ToList()
+                                         }).ToList()
+                        };
             }
 
-            //Questionnaire.QuestionnairesActors = Questionnaire.QuestionnairesActors.OrderBy(x => x.Order).ToList();
-
-            var model = new DetailsQuestionnaireDTO();
-            //model.Questionnaire = Questionnaire;
-            //model.Genres = Questionnaire.QuestionnairesGenres.Select(x => x.Genre).ToList();
-            //model.Actors = Questionnaire.QuestionnairesActors.Select(x =>
-            //    new Person
-            //    {
-            //        Name = x.Person.Name,
-            //        Picture = x.Person.Picture,
-            //        Character = x.Character,
-            //        Id = x.PersonId
-
-            //    }).ToList();
-
-            return model;
+            return await query.AsNoTracking().FirstOrDefaultAsync();
         }
 
-        public async Task<IndexPageDTO> GetIndexPageDTO()
+        public override Questionnaire Update(Questionnaire entity)
         {
-            var limit = 6;
-            var userEmail = await authenticationStateService.GetCurrentUserEmail();
+            var questionnaire = _context.Questionnaire.SingleOrDefault(q => q.Id == entity.Id);
 
-            if(userEmail == null) { return null; }
+            questionnaire.HasStarted = entity.HasStarted;
+            questionnaire.EndDate = entity.EndDate;
+            questionnaire.Destinatary = entity.Destinatary;
+            questionnaire.LatestEditDate = entity.LatestEditDate;
+            questionnaire.LatestUpdateDate = entity.LatestUpdateDate;
+            questionnaire.Title = questionnaire.Title;
+            questionnaire.Questions = questionnaire.Questions;
 
-            var personalQuestionnaires = await context.Questionnaire
-                .Where(x => x.Email == userEmail).Take(limit)
+            return base.Update(entity);
+        }
+
+        public override async Task<Questionnaire> AddAsync(Questionnaire entity)
+        {
+            return await base.AddAsync(entity);
+        }
+ 
+
+        public async Task<IndexPageDTO> GetIndexPageDTO(string userEmail)
+        {
+            if (userEmail == null) { return null; }
+
+            var personalQuestionnaires = await _context.Questionnaire
+                .Where(x => x.AuthorEmail == userEmail)
                 .OrderByDescending(x => x.LatestUpdateDate)
                 .AsNoTracking()
                 .ToListAsync();
 
-            var userId = await authenticationStateService.GetCurrentUserId();
-
-            var receivedQuestionnaires = await context.ReceiverQuestionnaire
-                .Where(x => x.UserId.ToString() == userId)
+            var receivedQuestionnaires = await _context.ReceiverQuestionnaire
+                .Include(rq => rq.Questionnaire)
+                .Where(x => x.UserEmail == userEmail)
                 .AsNoTracking()
                 .ToListAsync();
 
-            var response = new IndexPageDTO();
-            response.PersonalQuestionnaires = personalQuestionnaires;
-            response.ReceivedQuestionnaires = receivedQuestionnaires.Select(q => q.Questionnaire).OrderBy(q=> q.LatestUpdateDate).ToList(); ;
+            var response = new IndexPageDTO
+            {
+                PersonalQuestionnaires = personalQuestionnaires,
+                ReceivedQuestionnaires = receivedQuestionnaires.Select(q => q.Questionnaire).OrderBy(q => q.LatestUpdateDate).ToList()
+            };
 
             return response;
         }
 
-        //public async Task<QuestionnaireUpdateDTO> GetQuestionnaireForUpdate(int id)
-        //{
-        //    var questionnaireDetailDTO = await GetDetailsQuestionnaireDTO(id);
-
-        //    if (questionnaireDetailDTO == null) { return null; }
-
-        //    //var selectedGenresIds = QuestionnaireDetailDTO.Genres.Select(x => x.Id).ToList();
-        //    //var notSelectedGenres = await context.Genres
-        //    //    .Where(x => !selectedGenresIds.Contains(x.Id))
-        //    //    .ToListAsync();
-
-        //    var model = new QuestionnaireUpdateDTO();
-        //    model.Questionnaire = questionnaireDetailDTO.Questionnaire;
-        //    //model.NotSelectedGenres = notSelectedGenres;
-        //    return model;
-        //}
-
-        //public async Task<PaginatedResponse<List<Questionnaire>>> GetQuestionnairesFiltered(FilterQuestionnairesDTO filterQuestionnairesDTO)
-        //{
-        //    //var QuestionnairesQueryable = context.Questionnaires.AsQueryable();
-
-        //    //if (!string.IsNullOrWhiteSpace(filterQuestionnairesDTO.Title))
-        //    //{
-        //    //    QuestionnairesQueryable = QuestionnairesQueryable
-        //    //        .Where(x => x.Title.Contains(filterQuestionnairesDTO.Title));
-        //    //}
-
-        //    //if (filterQuestionnairesDTO.InTheaters)
-        //    //{
-        //    //    QuestionnairesQueryable = QuestionnairesQueryable.Where(x => x.InTheaters);
-        //    //}
-
-        //    //if (filterQuestionnairesDTO.UpcomingReleases)
-        //    //{
-        //    //    var today = DateTime.Today;
-        //    //    QuestionnairesQueryable = QuestionnairesQueryable.Where(x => x.ReleaseDate > today);
-        //    //}
-
-        //    //if (filterQuestionnairesDTO.GenreId != 0)
-        //    //{
-        //    //    QuestionnairesQueryable = QuestionnairesQueryable
-        //    //        .Where(x => x.QuestionnairesGenres.Select(y => y.GenreId)
-        //    //        .Contains(filterQuestionnairesDTO.GenreId));
-        //    //}
-
-        //    //var Questionnaires = await QuestionnairesQueryable.GetPaginatedResponse(filterQuestionnairesDTO.Pagination);
-        //    //return Questionnaires;
-        //    return null;
-        //}
-
-        //public async Task UpdateQuestionnaire(Questionnaire Questionnaire)
-        //{
-        //    context.Entry(Questionnaire).State = EntityState.Detached;
-        //    //var QuestionnaireDB = await context.Questionnaires
-        //    //    .Include(x => x.QuestionnairesActors)
-        //    //    .Include(x => x.QuestionnairesGenres)
-        //    //    .FirstOrDefaultAsync(x => x.Id == Questionnaire.Id);
-
-        //    if (!string.IsNullOrWhiteSpace(Questionnaire.Poster))
-        //    {
-        //        //var QuestionnairePoster = Convert.FromBase64String(Questionnaire.Poster);
-        //        //QuestionnaireDB.Poster = await fileStorageService.EditFile(QuestionnairePoster,
-        //        //    "jpg", containerName, QuestionnaireDB.Poster);
-        //    }
-
-        //    if (Questionnaire.QuestionnairesActors != null)
-        //    {
-        //        for (int i = 0; i < Questionnaire.QuestionnairesActors.Count; i++)
-        //        {
-        //            Questionnaire.QuestionnairesActors[i].Order = i + 1;
-        //        }
-        //    }
-
-        //    //QuestionnaireDB.QuestionnairesActors = Questionnaire.QuestionnairesActors;
-        //    //QuestionnaireDB.QuestionnairesGenres = Questionnaire.QuestionnairesGenres;
-
-        //    await context.SaveChangesAsync();
-        //}
     }
 }

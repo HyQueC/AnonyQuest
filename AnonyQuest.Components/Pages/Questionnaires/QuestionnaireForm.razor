@@ -1,84 +1,209 @@
 ﻿@using System.ComponentModel.DataAnnotations;
+@inject IJSRuntime js
 
 <div class="col-md-12">
-    <EditForm Model="@Questionnaire" OnValidSubmit="OnDataAnnotationsValidated">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
-        @if (AnyInvalidEmail)
-        {
-            <span class="text-danger">Há algum Email inválido no campo de destinatários</span>
-        }
-        <div class="form-group col-md-6">
-            <label>Título:</label>
-            <div>
-                <InputText class="form-control" @bind-Value="@Questionnaire.Title" />
-                <ValidationMessage For="@(() => Questionnaire.Title)" />
+    <fieldset disabled="@Questionnaire.HasStarted">
+        <EditForm Model="@Questionnaire" OnValidSubmit="OnDataAnnotationsValidated">
+            <DataAnnotationsValidator />
+            <div class="row">
+                <div class="form-group col-md-6">
+                    <label>Título:</label>
+                    <div>
+                        <InputText class="form-control" @bind-Value="@Questionnaire.Title" />
+                        <ValidationMessage For="@(() => Questionnaire.Title)" />
+                    </div>
+                </div>
+                <div class="form-group col-md-3">
+                    <label>Data Limite:</label>
+                    <div>
+                        <input type="datetime-local" @onchange="@(() => EndDateSelected())" id="endDate" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    &nbsp;
+                </div>
             </div>
-        </div>
-        <div class="form-group col-md-8">
-            <label>Destinatários:</label>
-            <div>
-                <InputTextArea class="form-control" placeholder="Insira os emails separados apenas por ;" @bind-Value="@ReceivingEmails" />
+            <div class="row">
+                @if (AnyInvalidEmail)
+                {
+                    <span class="text-danger">Preencha o campo de acordo ao especificado</span>
+                }
+                <div class="form-group col-md-8">
+                    <label>Destinatários:</label>
+                    <div>
+                        <InputTextArea class="form-control" @bind-Value="@ReceivingEmails" placeholder="Insira os emails separados apenas por ;" />
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    &nbsp;
+                </div>
             </div>
-        </div>
+            <div class="col-md-6">
+                <button class="btn btn-primary my-3" type="submit">Salvar Mudanças</button>
+                <button class="btn btn-success my-3 ml-2" type="button" disabled="@Questionnaire.HasStarted" @onclick="SendQuestionnaire">Enviar &nbsp;<i class="oi oi-envelope-closed"></i></button>
+            </div>
 
-        <div class="col-md-6">
-            <button class="btn btn-primary my-3" type="submit">Salvar Mudanças</button>
-            <button class="btn btn-secondary my-3 ml-2" type="submit"><i class="oi oi-plus"></i></button>
-        </div>
-
-        <h2>Perguntas:</h2>
-        <hr />
-        <div class="col-md-12">
-            <div class="form-group">
-                <div>
-                    <InputTextArea class="form-control" placeholder="Inclua o enunciado da pergunta" @bind-Value="@ReceivingEmails" />
-                </div>
-            </div>
+            <h2>Perguntas: <button class="btn btn-secondary my-3 ml-2" type="button" disabled="@Questionnaire.HasStarted" @onclick="CreateQuestion"><i class="oi oi-plus"></i></button></h2>
             <hr />
-            <div class="form-group">
-                <div>
-                    <InputTextArea class="form-control" placeholder="Inclua o enunciado da pergunta" @bind-Value="@ReceivingEmails" />
+            @if (AnyInvalidQuestions)
+            {
+                <span class="text-danger">Para envio direto do questionário, não pode haver questões em branco</span>
+            }
+            @foreach (var question in Questionnaire.Questions)
+            {
+                <div class="row">
+                    <div class="col-md-11">
+                        <div>
+                            <InputTextArea class="form-control" placeholder="Inclua o enunciado da pergunta" @bind-Value="@question.Description" />
+                        </div>
+                    </div>
+                    <div class="col-md-1" style="display:flex; align-items:center;">
+                        <button class="btn btn-danger" type="button" disabled="@Questionnaire.HasStarted" @onclick="() => RemoveQuestion(question)"><i class="oi oi-trash"></i></button>
+                        <button class="btn btn-info" style="margin-left:5px" type="button" disabled="@(!question.Answers.Any())" @onclick="() => question.ShowAnswers = !question.ShowAnswers"><i class="oi oi-circle-check"></i></button>
+                    </div>
                 </div>
-            </div>
-            <hr />
-            <div class="form-group">
-                <div>
-                    <InputTextArea class="form-control" placeholder="Inclua o enunciado da pergunta" @bind-Value="@ReceivingEmails" />
+                <div class=@(question.ShowAnswers ? "" : "collapsed")>
+                    @foreach (var answer in question.Answers)
+                    {
+                        <div class="row">
+                            <div class="col-md-11">
+                                <div style="position:relative">
+                                    <div style="position:absolute; padding-left:5px">Resposta #@question.Answers.IndexOf(answer):</div>
+                                    <InputTextArea style="padding-top:20px; margin-top:5px" class="form-control" disabled="@(answer.FinalAnswer)" placeholder="Resposta" @bind-Value="@answer.Description" />
+                                </div>
+                            </div>
+                        </div>
+                        <hr />
+                    }
                 </div>
-            </div>
-            <hr />
-        </div>
-    </EditForm>
+            }
+        </EditForm>
+    </fieldset>
 </div>
 
 @code {
     [Parameter] public Questionnaire Questionnaire { get; set; }
-    [Parameter] public EventCallback OnValidSubmit { get; set; }
+    [Parameter] public EventCallback<Questionnaire> OnValidSubmit { get; set; }
+    [Parameter] public EventCallback<Questionnaire> OnValidSendQuestionnaire { get; set; }
 
-    private bool AnyInvalidEmail = false;
+    private bool AnyInvalidEmail;
+    private bool AnyInvalidQuestions;
     private string ReceivingEmails = "";
 
+    protected override void OnParametersSet()
+    {
+        if (Questionnaire.Questions.Any())
+        {
+            ReceivingEmails = string.Join(";", Questionnaire.Destinatary);
+        }
+        else
+        {
+            CreateQuestion();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (Questionnaire.EndDate != DateTime.MinValue)
+        {
+            string selectedDateAsString = Questionnaire.EndDate.ToString("yyyy-MM-ddTHH:mm");
+
+            await js.InvokeVoidAsync("customizationJsFunctions.setSelectedDate", selectedDateAsString);
+        }
+    }
 
     private async Task OnDataAnnotationsValidated()
     {
-        var emailList = ReceivingEmails.Split(';').ToList();
+        if (IsValidEntry())
+        {
+            await OnValidSubmit.InvokeAsync(null);
+        }
+    }
+
+    private async Task SendQuestionnaire()
+    {
+        if (string.IsNullOrEmpty(ReceivingEmails))
+        {
+            AnyInvalidEmail = true;
+            return;
+        }
+
+        if (IsValidEntry() && ContainsValidQuestions())
+        {
+            Questionnaire.HasStarted = true;
+            await OnValidSendQuestionnaire.InvokeAsync(null);
+        }
+    }
+
+    private bool IsValidEntry()
+    {
+        var emailList = ReceivingEmails.Split(';').Select(s => s.Trim()).ToList();
+        var ReceiverList = new List<ReceiverQuestionnaire>();
 
         foreach (var email in emailList)
         {
-            if (!IsValidEmail(email))
+            if (!IsValidEmail(email) && !string.IsNullOrEmpty(email))
             {
                 AnyInvalidEmail = true;
-                return;
+                return false;
             }
+            ReceiverList.Add(new ReceiverQuestionnaire() { UserEmail = email });
         }
-        Questionnaire.Destinatary = emailList;
-        await OnValidSubmit.InvokeAsync(null);
+
+        AnyInvalidEmail = false;
+        Questionnaire.ReceiverQuestionnaires = ReceiverList;
+        Questionnaire.LatestEditDate = DateTime.Now;
+        return true;
     }
 
     private bool IsValidEmail(string source)
     {
         return new EmailAddressAttribute().IsValid(source);
+    }
+
+    private bool ContainsValidQuestions()
+    {
+        foreach (var question in Questionnaire.Questions)
+        {
+            if (string.IsNullOrEmpty(question.Description))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void CreateQuestion()
+    {
+        Questionnaire.Questions.Add(
+            new Question
+            {
+                CreatedDate = DateTime.Now,
+                LatestEditDate = DateTime.Now
+            }
+        );
+
+    }
+
+    private void RemoveQuestion(Question question)
+    {
+        Questionnaire.Questions.Remove(question);
+    }
+
+
+
+    protected async void EndDateSelected()
+    {
+        string selectedDateAsString = await js.InvokeAsync<string>("customizationJsFunctions.getSelectedDate");
+        try
+        {
+            Questionnaire.EndDate = Convert.ToDateTime(selectedDateAsString);
+        }
+        catch
+        {
+            Questionnaire.EndDate = DateTime.Now;
+        }
+        StateHasChanged();
     }
 }
 

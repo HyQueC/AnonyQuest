@@ -36,5 +36,16 @@
 
     <script src="_framework/blazor.server.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+    <script>
+        window.customizationJsFunctions = {
+            getSelectedDate: function () {
+                return document.getElementById("endDate").value;
+            },
+            setSelectedDate: function (selectedDate) {
+                document.getElementById("endDate").value = selectedDate;
+                return "OK";
+            }
+        };
+    </script>
 </body>
 </html>

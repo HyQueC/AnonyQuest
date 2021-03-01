@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -30,6 +30,8 @@
     <Compile Remove="Data\Migrations\20201207081005_UsrIdToStr.Designer.cs" />
     <Compile Remove="Data\Migrations\20201207081108_UsrIdToStr.cs" />
     <Compile Remove="Data\Migrations\20201207081108_UsrIdToStr.Designer.cs" />
+    <Compile Remove="Data\Migrations\20210226011838_answerUpdate.cs" />
+    <Compile Remove="Data\Migrations\20210226011838_answerUpdate.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -45,10 +47,6 @@
   <ItemGroup>
     <ProjectReference Include="..\AnonyQuest.Components\AnonyQuest.Components.csproj" />
     <ProjectReference Include="..\AnonyQuest.Shared\AnonyQuest.Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Repositories\" />
   </ItemGroup>
 
 </Project>

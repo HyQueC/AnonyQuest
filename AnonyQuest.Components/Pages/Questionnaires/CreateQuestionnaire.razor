@@ -1,8 +1,7 @@
 ﻿@page "/questionnaire/create"
-@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager navigationManager
-@inject IQuestionnaireRepository questionnaireRepository
-@inject IUsersRepository UserRepository
+@inject IRepository<Questionnaire> questionnaireRepository
+@inject IAuthenticationStateService authService
 @attribute [Authorize]
 
 
@@ -17,7 +16,7 @@
     </div>
     <div class="row">
         <div class="col-md-9">
-            <QuestionnaireForm Questionnaire="@Questionnaire" OnValidSubmit="SaveQuestionnaire" />
+            <QuestionnaireForm Questionnaire="@Questionnaire" OnValidSubmit="SaveQuestionnaire" OnValidSendQuestionnaire="SendQuestionnaire"/>
         </div>
     </div>
 </div>
@@ -29,17 +28,35 @@
 
     protected async override Task OnInitializedAsync()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-
-        AuthorEmail = await UserRepository.GetUserEmail(user);
+        AuthorEmail = await authService.GetCurrentUserEmail();
+        Questionnaire.AuthorEmail = AuthorEmail;
+        Questionnaire.CreatedDate = DateTime.Now;
+        Questionnaire.EndDate = DateTime.ParseExact(DateTime.Now.ToString("dd/MM/yyyy HH:mm"), "dd/MM/yyyy HH:mm", System.Globalization.CultureInfo.InvariantCulture);
+        Questionnaire.Questions = new List<Question>();
     }
 
     private async Task SaveQuestionnaire()
     {
         try
         {
-            var questionnaireId = await questionnaireRepository.CreateQuestionnaire(Questionnaire);
+            var questionnaire = await questionnaireRepository.AddAsync(Questionnaire);
+            await questionnaireRepository.SaveChangesAsync();
+            questionnaire.Destinatary = questionnaire.ReceiverQuestionnaires == null ? new List<string>() : questionnaire.ReceiverQuestionnaires?.Select(x => x.UserEmail).ToList();
+            navigationManager.NavigateTo($"/");
+        }
+        catch (Exception)
+        {
+
+        }
+    }
+
+    private async Task SendQuestionnaire()
+    {
+        try
+        {
+            var questionnaire = await questionnaireRepository.AddAsync(Questionnaire);
+            await questionnaireRepository.SaveChangesAsync();
+            questionnaire.Destinatary = questionnaire.ReceiverQuestionnaires == null ? new List<string>() : questionnaire.ReceiverQuestionnaires?.Select(x => x.UserEmail).ToList();
             navigationManager.NavigateTo($"/");
         }
         catch (Exception)

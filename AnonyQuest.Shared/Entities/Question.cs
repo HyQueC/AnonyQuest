@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AnonyQuest.Shared.Entities
 {
@@ -11,8 +12,6 @@ namespace AnonyQuest.Shared.Entities
         [Required]
         public string Description { get; set; }
 
-        public string Picture { get; set; }
-
         public DateTime CreatedDate { get; set; }
 
         public DateTime LatestEditDate { get; set; }
@@ -22,5 +21,8 @@ namespace AnonyQuest.Shared.Entities
         public int QuestionnaireId { get; set; }
 
         public Questionnaire Questionnaire { get; set; }
+
+        [NotMapped]
+        public bool ShowAnswers { get; set; }
     }
 }

@@ -4,14 +4,16 @@ using AnonyQuest.App.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace AnonyQuest.App.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210216000327_AtualizacaoChaveReceiverQuestionnaire")]
+    partial class AtualizacaoChaveReceiverQuestionnaire
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,18 +35,11 @@ namespace AnonyQuest.App.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("FinalAnswer")
-                        .HasColumnType("bit");
-
                     b.Property<DateTime>("LatestEditDate")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("QuestionId")
                         .HasColumnType("int");
-
-                    b.Property<string>("UserEmail")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");

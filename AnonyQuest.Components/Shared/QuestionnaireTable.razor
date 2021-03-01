@@ -2,21 +2,34 @@
     <HeadTemplate>
         <th scope="col">Autor</th>
         <th scope="col">Título</th>
-        <th scope="col">Respostas</th>
         <th scope="col">Data de Criação</th>
-        <th scope="col">Última Atualização</th>
+        <th scope="col">Respostas</th>
+        <th scope="col">Última Resposta</th>
         <th scope="col">Tempo restante</th>
     </HeadTemplate>
     <RowTemplate Context="element">
-        <td class="tableEmailElement tooltip">
-            @element.Email
-            <span class="tooltiptext">@element.UserName</span>
-        </td>
-        <td>@element.Title</td>
-        <td>@element.TotalAnswerCount / @element.ReceiverQuestionnaires.Count</td>
+        <td>@element.AuthorEmail</td>
+        <td><a href="" @onclick="() => GetQuestionnaireDetails(element.Id)" @onclick:preventDefault>@element.Title</a></td>
         <td>@element.CreatedDate</td>
-        <td>@element.LatestUpdateDate</td>
-        <td>@element.LatestUpdateDate</td>
+        <td>@element.TotalAnswerCount / @(element.ReceiverQuestionnaires?.Count??0)</td>
+        @if (element.LatestUpdateDate != DateTime.MinValue)
+        {
+            <td>@element.LatestUpdateDate</td>
+        }
+        else
+        {
+            <td>N/A</td>
+        }
+
+        @if (element.EndDate != DateTime.MinValue)
+        {
+            remainingTime = element.EndDate - today;
+            <td>@($"{remainingTime.Days.ToString()}d {remainingTime.Hours.ToString()}h{remainingTime.Minutes}min")</td>
+        }
+        else
+        {
+            <td>N/A</td>
+        }
     </RowTemplate>
 </GenericTable>
 
@@ -25,4 +38,18 @@
     public string TableId { get; set; }
     [Parameter]
     public List<Questionnaire> Questionnaires { get; set; }
+    [Parameter] public EventCallback<int> OnClickSearchQuestionnaireDetails { get; set; }
+
+    private DateTime today { get; set; }
+    private TimeSpan remainingTime { get; set; }
+
+    protected override void OnInitialized()
+    {
+        today = DateTime.Now;
+    }
+
+    private void GetQuestionnaireDetails(int questionnaireId)
+    {
+        OnClickSearchQuestionnaireDetails.InvokeAsync(questionnaireId);
+    }
 }

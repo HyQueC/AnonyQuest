@@ -6,6 +6,9 @@ namespace AnonyQuest.Shared.Entities
     public class Answer
     {
         public int Id { get; set; }
+        public string UserEmail { get; set; }
+
+        public bool FinalAnswer { get; set; }
 
         [Required]
         public string Description { get; set; }
@@ -17,8 +20,6 @@ namespace AnonyQuest.Shared.Entities
         public int QuestionId { get; set; }
 
         public Question Question { get; set; }
-
-
 
     }
 }

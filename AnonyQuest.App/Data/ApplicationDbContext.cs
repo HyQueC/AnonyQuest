@@ -4,10 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AnonyQuest.App.Data
 {
-    public class ApplicationDbContext: IdentityDbContext
+    public class ApplicationDbContext : IdentityDbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            :base(options)
+            : base(options)
         {
 
         }
@@ -19,13 +19,22 @@ namespace AnonyQuest.App.Data
                 .IsRequired();
 
             modelBuilder.Entity<Questionnaire>()
-                .Property<string>("Email")
+                .Property<string>("AuthorEmail")
                 .IsRequired();
 
+            modelBuilder.Entity<Answer>()
+            .Property<string>("UserEmail")
+            .IsRequired();
+
             modelBuilder.Entity<ReceiverQuestionnaire>()
-                .HasKey("UserId", "QuestionnaireId");
+                .HasKey("UserEmail", "QuestionnaireId");
 
             base.OnModelCreating(modelBuilder);
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.EnableSensitiveDataLogging();
         }
 
         public DbSet<Answer> Answer { get; set; }

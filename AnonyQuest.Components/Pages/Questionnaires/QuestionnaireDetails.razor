@@ -1,0 +1,142 @@
+﻿@page "/questionnaire/{questionnaireId:int}/Details"
+@inject NavigationManager navigationManager
+@inject IQuestionnaireRepository questionnaireRepository
+@inject IRepository<Question>  questionRepository
+@inject IAuthenticationStateService authService
+@attribute [Authorize]
+
+@if (Questionnaire == null)
+{
+    <h2>Carregando...</h2>
+
+}
+else
+{
+    <h2>Questionário: @Questionnaire.Title</h2>
+    <h5>@Questionnaire.CreatedDate - @Questionnaire.AuthorEmail</h5>
+    <EditForm Model="@Questionnaire">
+        <div class="row">
+            <div class="col-md-9">
+                @if (IsAuthorView)
+                {
+                    <QuestionnaireForm Questionnaire="@Questionnaire" OnValidSubmit="SaveQuestionnaire" OnValidSendQuestionnaire="SendQuestionnaire" />
+                }
+                else
+                {
+                    <p>Data Limite: @Questionnaire.EndDate</p>
+
+                    <div class="col-md-6">
+                        <button class="btn btn-primary my-3" type="submit" disabled="@(!Questionnaire.HasStarted)" @onclick="SaveAnswers">Salvar Respostas</button>
+                        <button class="btn btn-success my-3 ml-2" type="button" disabled="@(!Questionnaire.HasStarted)" @onclick="FinishQuestionnaire">Enviar Respostas &nbsp;<i class="oi oi-envelope-closed"></i></button>
+                    </div>
+                    <h2>Perguntas: </h2>
+                    @foreach (var question in Questionnaire.Questions)
+                    {
+                        <div class="row">
+                            <div class="col-md-11">
+                                <div>
+                                    <InputTextArea class="form-control" disabled="true" placeholder="Inclua o enunciado da pergunta" @bind-Value="@question.Description" />
+                                </div>
+                            </div>
+                            <div class="col-md-1" style="display:flex; align-items:center;">
+                                <button class="btn btn-success" type="button" disabled="@(!Questionnaire.HasStarted)" @onclick="() => AnswerQuestion(question)"><i class="oi oi-circle-check"></i></button>
+                            </div>
+                        </div>
+                        if (question.Answers.Any())
+                        {
+                            <div class="row">
+                                <div class="col-md-11">
+                                    <div style="position:relative">
+                                        <div style="position:absolute; padding-left:5px">Resposta:</div>
+                                        <InputTextArea style="padding-top:20px; margin-top:5px" class="form-control" disabled="@(question.Answers.FirstOrDefault().FinalAnswer)" placeholder="Resposta" @bind-Value="@question.Answers.FirstOrDefault().Description" />
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        <hr />
+                    }
+                }
+            </div>
+        </div>
+    </EditForm>
+}
+@code {
+    [Parameter]
+    public int QuestionnaireId { get; set; }
+
+    private Questionnaire Questionnaire { get; set; }
+    private bool IsAuthorView { get; set; }
+    private string curretUserEmail { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        curretUserEmail = await authService.GetCurrentUserEmail();
+        Questionnaire = await questionnaireRepository.GetDetailsByUserAsync(QuestionnaireId, curretUserEmail);
+
+        IsAuthorView = Questionnaire.AuthorEmail.Equals(curretUserEmail);
+        Questionnaire.Destinatary = Questionnaire.ReceiverQuestionnaires == null ? new List<string>() : Questionnaire.ReceiverQuestionnaires?.Select(x => x.UserEmail).ToList();
+    }
+
+    private async Task SaveQuestionnaire()
+    {
+        try
+        {
+            var questionnaire = await questionnaireRepository.AddAsync(Questionnaire);
+            await questionnaireRepository.SaveChangesAsync();
+            navigationManager.NavigateTo($"/");
+        }
+        catch (Exception)
+        {
+
+        }
+    }
+
+    private async Task SendQuestionnaire()
+    {
+        try
+        {
+            var questionnaire = await questionnaireRepository.AddAsync(Questionnaire);
+            await questionnaireRepository.SaveChangesAsync();
+            navigationManager.NavigateTo($"/");
+        }
+        catch (Exception)
+        {
+
+        }
+    }
+
+    private void AnswerQuestion(Question question)
+    {
+        if (!question.Answers.Any())
+        {
+            question.Answers.Add(new Answer()
+            {
+                UserEmail = curretUserEmail,
+                CreatedDate = DateTime.Now,
+                LatestEditDate = DateTime.Now,
+                QuestionId = question.Id,
+                Question = question
+            });
+        }
+    }
+
+    private async Task FinishQuestionnaire()
+    {
+        foreach (var question in Questionnaire.Questions)
+        {
+            question.Answers.FirstOrDefault().FinalAnswer = true;
+            questionRepository.Update(question);
+        }
+        await questionRepository.SaveChangesAsync();
+    }
+
+    private async Task SaveAnswers()
+    {
+        foreach (var question in Questionnaire.Questions)
+        {
+            questionRepository.Update(question);
+        }
+        await questionRepository.SaveChangesAsync();
+    }
+
+}

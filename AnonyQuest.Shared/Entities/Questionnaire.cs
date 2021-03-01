@@ -10,25 +10,25 @@ namespace AnonyQuest.Shared.Entities
         public int Id { get; set; }
 
         [EmailAddress]
-        public string Email { get; set; }
+        public string AuthorEmail { get; set; }
 
         [Required(ErrorMessage = "O Campo é obrigatório")]
         public string Title { get; set; }
 
         public DateTime CreatedDate { get; set; }
 
-        public DateTime OpenTime { get; set; }
+        [Required(ErrorMessage = "O Campo é obrigatório")]
+        public DateTime EndDate { get; set; }
         
         public DateTime LatestUpdateDate { get; set; }
 
         public DateTime LatestEditDate { get; set; }
 
+        public bool HasStarted { get; set; }
+
         public List<Question> Questions { get; set; }
 
         public List<ReceiverQuestionnaire> ReceiverQuestionnaires { get; set; }
-
-        [NotMapped]
-        public string UserName { get; set; }
 
         [NotMapped]
         public int TotalAnswerCount { get; set; }

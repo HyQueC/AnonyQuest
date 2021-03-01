@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Hosting;
@@ -8,12 +7,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using AnonyQuest.App.Data;
-using AnonyQuest.Components.Helpers;
 using AnonyQuest.App.Helpers;
-using Tewr.Blazor.FileReader;
 using AnonyQuest.App.Areas.Identity;
 using AnonyQuest.App.Repositories;
-using AnonyQuest.Shared.Repositories;
+using AnonyQuest.Shared.Entities;
+using AnonyQuest.Shared.Interfaces;
 
 namespace AnonyQuest.App
 {
@@ -28,18 +26,14 @@ namespace AnonyQuest.App
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddScoped<IFileStorageService>(provider =>
-            {
-                var env = provider.GetService<IWebHostEnvironment>();
-                var navManager = provider.GetService<NavigationManager>();
-                return new InAppStorageService(env.WebRootPath, navManager.Uri);
-            });
 
-            services.AddScoped<IUsersRepository, UsersRepository>();
-            services.AddScoped<IQuestionnaireRepository, QuestionnaireRepository>();
+            services.AddScoped<QuestionnaireRepository>();
+            services.AddScoped<QuestionRepository>();
+            services.AddScoped<IQuestionnaireRepository>(x => x.GetRequiredService<QuestionnaireRepository>());
+            services.AddScoped<IRepository<Questionnaire>>(x => x.GetRequiredService<QuestionnaireRepository>());
+            services.AddScoped<IRepository<Question>>(x => x.GetRequiredService<QuestionRepository>());
             services.AddScoped<IAuthenticationStateService, AuthenticationStateService>();
-            services.AddFileReaderService(options => options.InitializeOnFirstCall = true);
-
+            
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
