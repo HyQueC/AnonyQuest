@@ -22,8 +22,6 @@ namespace AnonyQuest.Shared.Entities
         
         public DateTime LatestUpdateDate { get; set; }
 
-        public DateTime LatestEditDate { get; set; }
-
         public bool HasStarted { get; set; }
 
         public List<Question> Questions { get; set; }

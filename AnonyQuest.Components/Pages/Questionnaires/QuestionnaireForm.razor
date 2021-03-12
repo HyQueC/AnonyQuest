@@ -59,21 +59,24 @@
                     </div>
                     <div class="col-md-1" style="display:flex; align-items:center;">
                         <button class="btn btn-danger" type="button" disabled="@Questionnaire.HasStarted" @onclick="() => RemoveQuestion(question)"><i class="oi oi-trash"></i></button>
-                        <button class="btn btn-info" style="margin-left:5px" type="button" disabled="@(!question.Answers.Any())" @onclick="() => question.ShowAnswers = !question.ShowAnswers"><i class="oi oi-circle-check"></i></button>
+                        <button class="btn btn-info" style="margin-left:5px" type="button" disabled="@(!question.Answers?.Any())" @onclick="() => question.ShowAnswers = !question.ShowAnswers"><i class="oi oi-circle-check"></i></button>
                     </div>
                 </div>
                 <div class=@(question.ShowAnswers ? "" : "collapsed")>
-                    @foreach (var answer in question.Answers)
+                    @if (question.Answers != null)
                     {
-                        <div class="row">
-                            <div class="col-md-11">
-                                <div style="position:relative">
-                                    <div style="position:absolute; padding-left:5px">Resposta #@question.Answers.IndexOf(answer):</div>
-                                    <InputTextArea style="padding-top:20px; margin-top:5px" class="form-control" disabled="@(answer.FinalAnswer)" placeholder="Resposta" @bind-Value="@answer.Description" />
+                        foreach (var answer in question.Answers)
+                        {
+                            <div class="row">
+                                <div class="col-md-11">
+                                    <div style="position:relative">
+                                        <div style="position:absolute; padding-left:5px">Resposta #@question.Answers.IndexOf(answer):</div>
+                                        <InputTextArea style="padding-top:20px; margin-top:5px" class="form-control" disabled="@(answer.FinalAnswer)" placeholder="Resposta" @bind-Value="@answer.Description" />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <hr />
+                            <hr />
+                        }
                     }
                 </div>
             }
@@ -90,15 +93,19 @@
     private bool AnyInvalidQuestions;
     private string ReceivingEmails = "";
 
-    protected override void OnParametersSet()
+    protected override void OnAfterRender(bool firstRender)
     {
-        if (Questionnaire.Questions.Any())
+        if (firstRender)
         {
-            ReceivingEmails = string.Join(";", Questionnaire.Destinatary);
-        }
-        else
-        {
-            CreateQuestion();
+            if (Questionnaire.Questions.Any())
+            {
+                ReceivingEmails = string.Join(";", Questionnaire.Destinatary);
+                StateHasChanged();
+            }
+            else
+            {
+                CreateQuestion();
+            }
         }
     }
 
@@ -152,7 +159,6 @@
 
         AnyInvalidEmail = false;
         Questionnaire.ReceiverQuestionnaires = ReceiverList;
-        Questionnaire.LatestEditDate = DateTime.Now;
         return true;
     }
 
@@ -182,7 +188,7 @@
                 LatestEditDate = DateTime.Now
             }
         );
-
+        StateHasChanged();
     }
 
     private void RemoveQuestion(Question question)

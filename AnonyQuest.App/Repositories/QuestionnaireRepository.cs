@@ -22,41 +22,41 @@ namespace AnonyQuest.App.Repositories
 
             var questionnaireId = await _context
                 .Questionnaire.Where(x => x.Id == id)
-                .Select(q => q.AuthorEmail)
                 .AsNoTracking()
+                .Select(q => q.AuthorEmail)
                 .FirstOrDefaultAsync();
 
 
             if (questionnaireId.Equals(currentUser))
             {
                 query = from questionnaire in _context.Questionnaire
-                            where questionnaire.Id == id && questionnaire.AuthorEmail.Equals(currentUser)
-                            select new Questionnaire()
-                            {
-                                Id = questionnaire.Id,
-                                AuthorEmail = questionnaire.AuthorEmail,
-                                Title = questionnaire.Title,
-                                CreatedDate = questionnaire.CreatedDate,
-                                EndDate = questionnaire.EndDate,
-                                LatestUpdateDate = questionnaire.LatestUpdateDate,
-                                LatestEditDate = questionnaire.LatestEditDate,
-                                HasStarted = questionnaire.HasStarted,
-                                Questions = (from question in _context.Question
-                                             where question.QuestionnaireId == questionnaire.Id
-                                             select new Question() 
-                                             {
-                                                 Id = question.Id,
-                                                 Description = question.Description,
-                                                 CreatedDate = question.CreatedDate,
-                                                 LatestEditDate = question.LatestEditDate,
-                                                 QuestionnaireId = question.QuestionnaireId,
-                                                 Questionnaire = question.Questionnaire,
-                                                 Answers = (from answer in _context.Answer
-                                                            where answer.QuestionId == question.Id 
-                                                            && answer.FinalAnswer == true
-                                                            select answer).ToList()
-                                             }).ToList()
-                            };
+                        where questionnaire.Id == id && questionnaire.AuthorEmail.Equals(currentUser)
+                        select new Questionnaire()
+                        {
+                            Id = questionnaire.Id,
+                            AuthorEmail = questionnaire.AuthorEmail,
+                            Title = questionnaire.Title,
+                            CreatedDate = questionnaire.CreatedDate,
+                            EndDate = questionnaire.EndDate,
+                            LatestUpdateDate = questionnaire.LatestUpdateDate,
+                            HasStarted = questionnaire.HasStarted,
+                            ReceiverQuestionnaires = questionnaire.ReceiverQuestionnaires,
+                            Questions = (from question in _context.Question
+                                         where question.QuestionnaireId == questionnaire.Id
+                                         select new Question()
+                                         {
+                                             Id = question.Id,
+                                             Description = question.Description,
+                                             CreatedDate = question.CreatedDate,
+                                             LatestEditDate = question.LatestEditDate,
+                                             QuestionnaireId = question.QuestionnaireId,
+                                             Questionnaire = question.Questionnaire,
+                                             Answers = (from answer in _context.Answer
+                                                        where answer.QuestionId == question.Id
+                                                        && answer.FinalAnswer == true
+                                                        select answer).ToList()
+                                         }).ToList()
+                        };
             }
             else
             {
@@ -70,7 +70,6 @@ namespace AnonyQuest.App.Repositories
                             CreatedDate = questionnaire.CreatedDate,
                             EndDate = questionnaire.EndDate,
                             LatestUpdateDate = questionnaire.LatestUpdateDate,
-                            LatestEditDate = questionnaire.LatestEditDate,
                             HasStarted = questionnaire.HasStarted,
                             Questions = (from question in _context.Question
                                          where question.QuestionnaireId == questionnaire.Id
@@ -100,19 +99,17 @@ namespace AnonyQuest.App.Repositories
             questionnaire.HasStarted = entity.HasStarted;
             questionnaire.EndDate = entity.EndDate;
             questionnaire.Destinatary = entity.Destinatary;
-            questionnaire.LatestEditDate = entity.LatestEditDate;
             questionnaire.LatestUpdateDate = entity.LatestUpdateDate;
             questionnaire.Title = questionnaire.Title;
             questionnaire.Questions = questionnaire.Questions;
 
-            return base.Update(entity);
+            return base.Update(questionnaire);
         }
 
         public override async Task<Questionnaire> AddAsync(Questionnaire entity)
         {
             return await base.AddAsync(entity);
         }
- 
 
         public async Task<IndexPageDTO> GetIndexPageDTO(string userEmail)
         {
@@ -120,6 +117,7 @@ namespace AnonyQuest.App.Repositories
 
             var personalQuestionnaires = await _context.Questionnaire
                 .Where(x => x.AuthorEmail == userEmail)
+                .Include(q => q.ReceiverQuestionnaires)
                 .OrderByDescending(x => x.LatestUpdateDate)
                 .AsNoTracking()
                 .ToListAsync();

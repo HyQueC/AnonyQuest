@@ -23,8 +23,15 @@
 
         @if (element.EndDate != DateTime.MinValue)
         {
-            remainingTime = element.EndDate - today;
-            <td>@($"{remainingTime.Days.ToString()}d {remainingTime.Hours.ToString()}h{remainingTime.Minutes}min")</td>
+            if(element.EndDate > today)
+            {
+                remainingTime = element.EndDate - today;
+                <td>@($"{remainingTime.Days.ToString()}d {remainingTime.Hours.ToString()}h{remainingTime.Minutes}min")</td>
+            }
+            else
+            {
+                <td>Finalizado</td>    
+            }
         }
         else
         {

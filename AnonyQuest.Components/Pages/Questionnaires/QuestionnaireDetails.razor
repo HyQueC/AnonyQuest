@@ -26,8 +26,8 @@ else
                     <p>Data Limite: @Questionnaire.EndDate</p>
 
                     <div class="col-md-6">
-                        <button class="btn btn-primary my-3" type="submit" disabled="@(!Questionnaire.HasStarted)" @onclick="SaveAnswers">Salvar Respostas</button>
-                        <button class="btn btn-success my-3 ml-2" type="button" disabled="@(!Questionnaire.HasStarted)" @onclick="FinishQuestionnaire">Enviar Respostas &nbsp;<i class="oi oi-envelope-closed"></i></button>
+                        <button class="btn btn-primary my-3" type="submit" disabled="@(!CanAnswer)" @onclick="SaveAnswers">Salvar Respostas</button>
+                        <button class="btn btn-success my-3 ml-2" type="button" disabled="@(!CanAnswer)" @onclick="FinishQuestionnaire" >Enviar Respostas &nbsp;<i class="oi oi-envelope-closed"></i></button>
                     </div>
                     <h2>Perguntas: </h2>
                     @foreach (var question in Questionnaire.Questions)
@@ -39,7 +39,7 @@ else
                                 </div>
                             </div>
                             <div class="col-md-1" style="display:flex; align-items:center;">
-                                <button class="btn btn-success" type="button" disabled="@(!Questionnaire.HasStarted)" @onclick="() => AnswerQuestion(question)"><i class="oi oi-circle-check"></i></button>
+                                <button class="btn btn-success" type="button" disabled="@(!CanAnswer)" @onclick="() => AnswerQuestion(question)"><i class="oi oi-circle-check"></i></button>
                             </div>
                         </div>
                         if (question.Answers.Any())
@@ -48,7 +48,7 @@ else
                                 <div class="col-md-11">
                                     <div style="position:relative">
                                         <div style="position:absolute; padding-left:5px">Resposta:</div>
-                                        <InputTextArea style="padding-top:20px; margin-top:5px" class="form-control" disabled="@(question.Answers.FirstOrDefault().FinalAnswer)" placeholder="Resposta" @bind-Value="@question.Answers.FirstOrDefault().Description" />
+                                        <InputTextArea style="padding-top:20px; margin-top:5px" class="form-control" placeholder="Resposta" @bind-Value="@question.Answers.FirstOrDefault().Description" disabled="@(question.Answers.FirstOrDefault().FinalAnswer || !CanAnswer)"/>
                                     </div>
                                 </div>
                             </div>
@@ -66,6 +66,7 @@ else
 
     private Questionnaire Questionnaire { get; set; }
     private bool IsAuthorView { get; set; }
+    private bool CanAnswer { get; set; }
     private string curretUserEmail { get; set; }
 
     protected override async Task OnParametersSetAsync()
@@ -74,6 +75,15 @@ else
         Questionnaire = await questionnaireRepository.GetDetailsByUserAsync(QuestionnaireId, curretUserEmail);
 
         IsAuthorView = Questionnaire.AuthorEmail.Equals(curretUserEmail);
+
+        if(Questionnaire.EndDate > DateTime.Now)
+        {
+            CanAnswer = true;
+        }
+        else
+        {
+            CanAnswer = false;
+        }
         Questionnaire.Destinatary = Questionnaire.ReceiverQuestionnaires == null ? new List<string>() : Questionnaire.ReceiverQuestionnaires?.Select(x => x.UserEmail).ToList();
     }
 
@@ -81,11 +91,11 @@ else
     {
         try
         {
-            var questionnaire = await questionnaireRepository.AddAsync(Questionnaire);
+            var questionnaire = questionnaireRepository.Update(Questionnaire);
             await questionnaireRepository.SaveChangesAsync();
             navigationManager.NavigateTo($"/");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
 
         }
@@ -122,11 +132,13 @@ else
 
     private async Task FinishQuestionnaire()
     {
+
         foreach (var question in Questionnaire.Questions)
         {
             question.Answers.FirstOrDefault().FinalAnswer = true;
             questionRepository.Update(question);
         }
+        Questionnaire.LatestUpdateDate = DateTime.Now;
         await questionRepository.SaveChangesAsync();
     }
 

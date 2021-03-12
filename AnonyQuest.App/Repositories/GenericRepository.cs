@@ -20,12 +20,18 @@ namespace AnonyQuest.App.Repositories
 
         public virtual async Task<T> AddAsync(T entity)
         {
-            return (await _context.AddAsync(entity)).Entity;
+            var newEntity = (await _context.AddAsync(entity)).Entity;
+            _context.Entry(entity).State = EntityState.Detached;
+
+            return newEntity;
         }
 
         public virtual T Update(T entity)
         {
-            return  _context.Update(entity).Entity;
+            //var ent = _context.Entry(entity);
+            //ent.State = EntityState.Modified;
+            //return ent.Entity;
+            return _context.Update(entity).Entity;
         }
 
         public virtual async Task<IEnumerable<T>> AllAsync()
@@ -41,7 +47,7 @@ namespace AnonyQuest.App.Repositories
                 .ToListAsync();
         }
 
-        public virtual async Task<T> GetAsync(int id)  
+        public virtual async Task<T> GetAsync(int id)
         {
             return await _context.FindAsync<T>(id);
         }

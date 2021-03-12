@@ -44,7 +44,7 @@
             questionnaire.Destinatary = questionnaire.ReceiverQuestionnaires == null ? new List<string>() : questionnaire.ReceiverQuestionnaires?.Select(x => x.UserEmail).ToList();
             navigationManager.NavigateTo($"/");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
 
         }
