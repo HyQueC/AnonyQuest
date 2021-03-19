@@ -3,12 +3,17 @@
 @inject IQuestionnaireRepository questionnaireRepository
 @inject IRepository<Question>  questionRepository
 @inject IAuthenticationStateService authService
+@inject IDisplayMessage displayMessage
 @attribute [Authorize]
 
 @if (Questionnaire == null)
 {
     <h2>Carregando...</h2>
 
+}
+else if (Questionnaire.Id == -1)
+{
+    <h2>Acesso não autorizado ou código de questionário inválido</h2>
 }
 else
 {
@@ -27,7 +32,7 @@ else
 
                     <div class="col-md-6">
                         <button class="btn btn-primary my-3" type="submit" disabled="@(!CanAnswer)" @onclick="SaveAnswers">Salvar Respostas</button>
-                        <button class="btn btn-success my-3 ml-2" type="button" disabled="@(!CanAnswer)" @onclick="FinishQuestionnaire" >Enviar Respostas &nbsp;<i class="oi oi-envelope-closed"></i></button>
+                        <button class="btn btn-success my-3 ml-2" type="button" disabled="@(!CanAnswer)" @onclick="FinishQuestionnaire">Enviar Respostas &nbsp;<i class="oi oi-envelope-closed"></i></button>
                     </div>
                     <h2>Perguntas: </h2>
                     @foreach (var question in Questionnaire.Questions)
@@ -48,7 +53,7 @@ else
                                 <div class="col-md-11">
                                     <div style="position:relative">
                                         <div style="position:absolute; padding-left:5px">Resposta:</div>
-                                        <InputTextArea style="padding-top:20px; margin-top:5px" class="form-control" placeholder="Resposta" @bind-Value="@question.Answers.FirstOrDefault().Description" disabled="@(question.Answers.FirstOrDefault().FinalAnswer || !CanAnswer)"/>
+                                        <InputTextArea style="padding-top:20px; margin-top:5px" class="form-control" @bind-Value="@question.Answers.FirstOrDefault().Description" disabled="@(question.Answers.FirstOrDefault().FinalAnswer || !CanAnswer)" />
                                     </div>
                                 </div>
                             </div>
@@ -74,30 +79,38 @@ else
         curretUserEmail = await authService.GetCurrentUserEmail();
         Questionnaire = await questionnaireRepository.GetDetailsByUserAsync(QuestionnaireId, curretUserEmail);
 
-        IsAuthorView = Questionnaire.AuthorEmail.Equals(curretUserEmail);
-
-        if(Questionnaire.EndDate > DateTime.Now)
+        if (Questionnaire.Id != -1)
         {
-            CanAnswer = true;
+            IsAuthorView = Questionnaire.AuthorEmail.Equals(curretUserEmail);
+
+            if (Questionnaire.EndDate <= DateTime.Now || Questionnaire.Questions.FirstOrDefault().Answers.Any(a => a.FinalAnswer == true))
+            {
+                CanAnswer = false;
+            }
+            else
+            {
+                CanAnswer = true;
+            }
+            Questionnaire.Destinatary = Questionnaire.ReceiverQuestionnaires == null ? new List<string>() : Questionnaire.ReceiverQuestionnaires?.Select(x => x.ReceiverEmail).ToList();
         }
         else
         {
-            CanAnswer = false;
+            navigationManager.NavigateTo($"/");
         }
-        Questionnaire.Destinatary = Questionnaire.ReceiverQuestionnaires == null ? new List<string>() : Questionnaire.ReceiverQuestionnaires?.Select(x => x.UserEmail).ToList();
     }
 
     private async Task SaveQuestionnaire()
     {
         try
         {
+            Questionnaire.LatestUpdateDate = DateTime.Now;
             var questionnaire = questionnaireRepository.Update(Questionnaire);
             await questionnaireRepository.SaveChangesAsync();
             navigationManager.NavigateTo($"/");
         }
         catch (Exception ex)
         {
-
+            await displayMessage.DisplayErrorMessage("Ocorreu algum erro ao salvar o questionário, por favor, tente novamente ou tente mais tarde");
         }
     }
 
@@ -105,13 +118,14 @@ else
     {
         try
         {
-            var questionnaire = await questionnaireRepository.AddAsync(Questionnaire);
+            Questionnaire.LatestUpdateDate = DateTime.Now;
+            var questionnaire = questionnaireRepository.Update(Questionnaire);
             await questionnaireRepository.SaveChangesAsync();
             navigationManager.NavigateTo($"/");
         }
         catch (Exception)
         {
-
+            await displayMessage.DisplayErrorMessage("Ocorreu algum erro no envio do questionário, por favor, tente novamente ou tente mais tarde");
         }
     }
 
@@ -132,14 +146,23 @@ else
 
     private async Task FinishQuestionnaire()
     {
-
-        foreach (var question in Questionnaire.Questions)
+        var questions = Questionnaire.Questions;
+        if (questions.All(q => q.Answers.All(a => !string.IsNullOrEmpty(a.Description))))
         {
-            question.Answers.FirstOrDefault().FinalAnswer = true;
-            questionRepository.Update(question);
+            foreach (var question in questions)
+            {
+                question.Answers.FirstOrDefault().FinalAnswer = true;
+            }
+            Questionnaire.TotalAnswerCount++;
+            Questionnaire.LatestAnswerDate = DateTime.Now;
+            questionnaireRepository.Update(Questionnaire);
+            await questionnaireRepository.SaveChangesAsync();
+
         }
-        Questionnaire.LatestUpdateDate = DateTime.Now;
-        await questionRepository.SaveChangesAsync();
+        else
+        {
+            await displayMessage.DisplayErrorMessage("Existem perguntas sem respostas cadastradas, revise e inclua algum texto no campo de resposta para todas as perguntas");
+        }
     }
 
     private async Task SaveAnswers()

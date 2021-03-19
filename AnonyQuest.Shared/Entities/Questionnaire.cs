@@ -21,6 +21,7 @@ namespace AnonyQuest.Shared.Entities
         public DateTime EndDate { get; set; }
         
         public DateTime LatestUpdateDate { get; set; }
+        public DateTime LatestAnswerDate { get; set; }
 
         public bool HasStarted { get; set; }
 
@@ -28,7 +29,6 @@ namespace AnonyQuest.Shared.Entities
 
         public List<ReceiverQuestionnaire> ReceiverQuestionnaires { get; set; }
 
-        [NotMapped]
         public int TotalAnswerCount { get; set; }
 
         [NotMapped]

@@ -20,17 +20,11 @@ namespace AnonyQuest.App.Repositories
 
         public virtual async Task<T> AddAsync(T entity)
         {
-            var newEntity = (await _context.AddAsync(entity)).Entity;
-            _context.Entry(entity).State = EntityState.Detached;
-
-            return newEntity;
+            return (await _context.AddAsync(entity)).Entity;
         }
 
         public virtual T Update(T entity)
         {
-            //var ent = _context.Entry(entity);
-            //ent.State = EntityState.Modified;
-            //return ent.Entity;
             return _context.Update(entity).Entity;
         }
 

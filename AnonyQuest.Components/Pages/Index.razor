@@ -7,18 +7,17 @@
 
 <div>
     <h3>Seus Questionários:</h3>
-    <QuestionnaireTable Questionnaires="@PersonalQuestionnaires" TableId="YourQuestionnaireTable" OnClickSearchQuestionnaireDetails="SearchQuestionnaireDetails"/>
+    <QuestionnaireTable Questionnaires="@PersonalQuestionnaires" TableId="YourQuestionnaireTable" IsAuthorTable="true" OnClickSearchQuestionnaireDetails="SearchQuestionnaireDetails"/>
 </div>
 <div>
     <h3>Questionários Pendentes:</h3>
-    <QuestionnaireTable Questionnaires="@ReceivedQuestionnaires" TableId="ReceivedQuestionnairesTable" OnClickSearchQuestionnaireDetails="SearchQuestionnaireDetails"/>
+    <QuestionnaireTable Questionnaires="@ReceivedQuestionnaires" TableId="ReceivedQuestionnairesTable" IsAuthorTable="false" OnClickSearchQuestionnaireDetails="SearchQuestionnaireDetails"/>
 </div>
 
 
 @code{
     private List<Questionnaire> PersonalQuestionnaires;
     private List<Questionnaire> ReceivedQuestionnaires;
-    private string AuthorEmail;
 
     protected async override Task OnInitializedAsync()
     {

@@ -59,10 +59,13 @@
                     </div>
                     <div class="col-md-1" style="display:flex; align-items:center;">
                         <button class="btn btn-danger" type="button" disabled="@Questionnaire.HasStarted" @onclick="() => RemoveQuestion(question)"><i class="oi oi-trash"></i></button>
-                        <button class="btn btn-info" style="margin-left:5px" type="button" disabled="@(!question.Answers?.Any())" @onclick="() => question.ShowAnswers = !question.ShowAnswers"><i class="oi oi-circle-check"></i></button>
+                        @if (question.Answers != null && question.Answers.Any())
+                        {
+                            <span class="btn btn-info" style="margin-left:5px" type="button" @onclick="() => question.ShowAnswers = !question.ShowAnswers"><i class="oi oi-circle-check"></i></span>
+                        }
                     </div>
                 </div>
-                <div class=@(question.ShowAnswers ? "" : "collapsed")>
+                <div class=@(question.ShowAnswers ? "" : "collapse")>
                     @if (question.Answers != null)
                     {
                         foreach (var answer in question.Answers)
@@ -154,7 +157,7 @@
                 AnyInvalidEmail = true;
                 return false;
             }
-            ReceiverList.Add(new ReceiverQuestionnaire() { UserEmail = email });
+            ReceiverList.Add(new ReceiverQuestionnaire() { ReceiverEmail = email });
         }
 
         AnyInvalidEmail = false;

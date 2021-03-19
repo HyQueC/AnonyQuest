@@ -1,11 +1,14 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AnonyQuest.Shared.Entities
 {
     public class Answer
     {
         public int Id { get; set; }
+
+        [Required]
         public string UserEmail { get; set; }
 
         public bool FinalAnswer { get; set; }

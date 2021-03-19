@@ -33,7 +33,8 @@ namespace AnonyQuest.App
             services.AddScoped<IRepository<Questionnaire>>(x => x.GetRequiredService<QuestionnaireRepository>());
             services.AddScoped<IRepository<Question>>(x => x.GetRequiredService<QuestionRepository>());
             services.AddScoped<IAuthenticationStateService, AuthenticationStateService>();
-            
+            services.AddScoped<IDisplayMessage, DisplayMessage>();
+
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));

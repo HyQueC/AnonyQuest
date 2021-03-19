@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace AnonyQuest.App.Data.Migrations
+namespace AnonyQuest.App.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20201012202710_Receiver")]
-    partial class Receiver
+    [Migration("20210319031653_initialize")]
+    partial class initialize
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -35,11 +35,18 @@ namespace AnonyQuest.App.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("FinalAnswer")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("LatestEditDate")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("QuestionId")
                         .HasColumnType("int");
+
+                    b.Property<string>("UserEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -68,9 +75,6 @@ namespace AnonyQuest.App.Data.Migrations
                     b.Property<DateTime>("LatestEditDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Picture")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("QuestionnaireId")
                         .HasColumnType("int");
 
@@ -88,19 +92,31 @@ namespace AnonyQuest.App.Data.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Email")
+                    b.Property<string>("AuthorEmail")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("LatestEditDate")
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("HasStarted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("LatestAnswerDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("LatestUpdateDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TotalAnswerCount")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -109,13 +125,13 @@ namespace AnonyQuest.App.Data.Migrations
 
             modelBuilder.Entity("AnonyQuest.Shared.Entities.ReceiverQuestionnaire", b =>
                 {
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
+                    b.Property<string>("ReceiverEmail")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("QuestionnaireId")
                         .HasColumnType("int");
 
-                    b.HasKey("UserId", "QuestionnaireId");
+                    b.HasKey("ReceiverEmail", "QuestionnaireId");
 
                     b.HasIndex("QuestionnaireId");
 

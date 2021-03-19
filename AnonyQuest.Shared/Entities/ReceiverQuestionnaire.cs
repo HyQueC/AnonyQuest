@@ -2,7 +2,7 @@
 {
     public class ReceiverQuestionnaire
     {
-        public string UserEmail { get; set; }
+        public string ReceiverEmail { get; set; }
         public int QuestionnaireId { get; set; }
         public Questionnaire Questionnaire { get; set; }
 

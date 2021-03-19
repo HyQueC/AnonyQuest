@@ -39,9 +39,10 @@
     {
         try
         {
+            Questionnaire.LatestUpdateDate = DateTime.Now;
             var questionnaire = await questionnaireRepository.AddAsync(Questionnaire);
             await questionnaireRepository.SaveChangesAsync();
-            questionnaire.Destinatary = questionnaire.ReceiverQuestionnaires == null ? new List<string>() : questionnaire.ReceiverQuestionnaires?.Select(x => x.UserEmail).ToList();
+            questionnaire.Destinatary = questionnaire.ReceiverQuestionnaires == null ? new List<string>() : questionnaire.ReceiverQuestionnaires?.Select(x => x.ReceiverEmail).ToList();
             navigationManager.NavigateTo($"/");
         }
         catch (Exception ex)
@@ -54,12 +55,13 @@
     {
         try
         {
+            Questionnaire.LatestUpdateDate = DateTime.Now;
             var questionnaire = await questionnaireRepository.AddAsync(Questionnaire);
             await questionnaireRepository.SaveChangesAsync();
-            questionnaire.Destinatary = questionnaire.ReceiverQuestionnaires == null ? new List<string>() : questionnaire.ReceiverQuestionnaires?.Select(x => x.UserEmail).ToList();
+            questionnaire.Destinatary = questionnaire.ReceiverQuestionnaires == null ? new List<string>() : questionnaire.ReceiverQuestionnaires?.Select(x => x.ReceiverEmail).ToList();
             navigationManager.NavigateTo($"/");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
 
         }

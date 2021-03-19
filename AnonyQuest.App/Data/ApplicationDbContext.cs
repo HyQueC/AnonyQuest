@@ -22,12 +22,8 @@ namespace AnonyQuest.App.Data
                 .Property<string>("AuthorEmail")
                 .IsRequired();
 
-            modelBuilder.Entity<Answer>()
-            .Property<string>("UserEmail")
-            .IsRequired();
-
             modelBuilder.Entity<ReceiverQuestionnaire>()
-                .HasKey("UserEmail", "QuestionnaireId");
+                .HasKey("ReceiverEmail", "QuestionnaireId");
 
             base.OnModelCreating(modelBuilder);
         }

@@ -4,7 +4,14 @@
         <th scope="col">Título</th>
         <th scope="col">Data de Criação</th>
         <th scope="col">Respostas</th>
+        @if (IsAuthorTable)
+        {
+        <th scope="col">Última Alteração</th>
+        }
+        else
+        {
         <th scope="col">Última Resposta</th>
+        }
         <th scope="col">Tempo restante</th>
     </HeadTemplate>
     <RowTemplate Context="element">
@@ -12,25 +19,42 @@
         <td><a href="" @onclick="() => GetQuestionnaireDetails(element.Id)" @onclick:preventDefault>@element.Title</a></td>
         <td>@element.CreatedDate</td>
         <td>@element.TotalAnswerCount / @(element.ReceiverQuestionnaires?.Count??0)</td>
-        @if (element.LatestUpdateDate != DateTime.MinValue)
+        @if (IsAuthorTable)
         {
-            <td>@element.LatestUpdateDate</td>
-        }
-        else
-        {
-            <td>N/A</td>
-        }
-
-        @if (element.EndDate != DateTime.MinValue)
-        {
-            if(element.EndDate > today)
+            if (element.LatestUpdateDate != DateTime.MinValue)
             {
-                remainingTime = element.EndDate - today;
-                <td>@($"{remainingTime.Days.ToString()}d {remainingTime.Hours.ToString()}h{remainingTime.Minutes}min")</td>
+                <td>@element.LatestUpdateDate</td>
             }
             else
             {
-                <td>Finalizado</td>    
+                <td>N/A</td>
+            }
+        }
+        else
+        {
+            if (element.LatestAnswerDate != DateTime.MinValue)
+            {
+                <td>@element.LatestAnswerDate</td>
+            }
+            else
+            {
+                <td>N/A</td>
+            }
+        }
+        @if (element.EndDate != DateTime.MinValue)
+        {
+            if (element.EndDate > today)
+            {
+                remainingTime = element.EndDate - today;
+                <td>@($"{remainingTime.Days}d {remainingTime.Hours}h{remainingTime.Minutes}min")</td>
+            }
+            else if (element.HasStarted)
+            {
+                <td>Finalizado</td>
+            }
+            else
+            {
+                <td>N/A</td>
             }
         }
         else
@@ -43,9 +67,15 @@
 @code{ 
     [Parameter]
     public string TableId { get; set; }
+
+    [Parameter]
+    public bool IsAuthorTable { get; set; }
+
     [Parameter]
     public List<Questionnaire> Questionnaires { get; set; }
-    [Parameter] public EventCallback<int> OnClickSearchQuestionnaireDetails { get; set; }
+
+    [Parameter] 
+    public EventCallback<int> OnClickSearchQuestionnaireDetails { get; set; }
 
     private DateTime today { get; set; }
     private TimeSpan remainingTime { get; set; }

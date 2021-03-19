@@ -6,35 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Data\Migrations\20201012060816_Initial.cs" />
-    <Compile Remove="Data\Migrations\20201012060816_Initial.Designer.cs" />
-    <Compile Remove="Data\Migrations\20201012192241_Initial.cs" />
-    <Compile Remove="Data\Migrations\20201012192241_Initial.Designer.cs" />
-    <Compile Remove="Data\Migrations\20201012192329_Initial.cs" />
-    <Compile Remove="Data\Migrations\20201012192329_Initial.Designer.cs" />
-    <Compile Remove="Data\Migrations\20201012192510_Initial.cs" />
-    <Compile Remove="Data\Migrations\20201012192510_Initial.Designer.cs" />
-    <Compile Remove="Data\Migrations\20201012193026_Initial.cs" />
-    <Compile Remove="Data\Migrations\20201012193026_Initial.Designer.cs" />
-    <Compile Remove="Data\Migrations\20201012193045_Initial.cs" />
-    <Compile Remove="Data\Migrations\20201012193045_Initial.Designer.cs" />
-    <Compile Remove="Data\Migrations\20201012193905_Initial.cs" />
-    <Compile Remove="Data\Migrations\20201012193905_Initial.Designer.cs" />
-    <Compile Remove="Data\Migrations\20201012194051_Initial.cs" />
-    <Compile Remove="Data\Migrations\20201012194051_Initial.Designer.cs" />
-    <Compile Remove="Data\Migrations\20201012194309_Initial.cs" />
-    <Compile Remove="Data\Migrations\20201012194309_Initial.Designer.cs" />
-    <Compile Remove="Data\Migrations\20201207080254_UserIdToString.cs" />
-    <Compile Remove="Data\Migrations\20201207080254_UserIdToString.Designer.cs" />
-    <Compile Remove="Data\Migrations\20201207081005_UsrIdToStr.cs" />
-    <Compile Remove="Data\Migrations\20201207081005_UsrIdToStr.Designer.cs" />
-    <Compile Remove="Data\Migrations\20201207081108_UsrIdToStr.cs" />
-    <Compile Remove="Data\Migrations\20201207081108_UsrIdToStr.Designer.cs" />
-    <Compile Remove="Data\Migrations\20210226011838_answerUpdate.cs" />
-    <Compile Remove="Data\Migrations\20210226011838_answerUpdate.Designer.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="3.1.6" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.6" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="3.1.6" />
