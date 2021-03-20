@@ -20,7 +20,7 @@ existe a dependência de um banco de dados com um servidor registrado que não s
 A fim de validar o comportamento dessa funcionalidade, é possível seguir os passos presentes no link https://www.sqlshack.com/using-dynamic-data-masking-in-sql-server-2016-to-protect-sensitive-data/
 
 
-### Fazendo o procedimento para o localdb
+### Fazendo o procedimento para o localdb (nota: aplicar após seguir as instruções de execução)
 
 - Abra o Microsoft SQL Server Management Studio, no modelo de autenticação como Windows insira o nome do servidor como (localdb)\MSSQLLocalDB
 
