@@ -28,11 +28,6 @@ namespace AnonyQuest.App.Data
             base.OnModelCreating(modelBuilder);
         }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.EnableSensitiveDataLogging();
-        }
-
         public DbSet<Answer> Answer { get; set; }
         public DbSet<Question> Question { get; set; }
         public DbSet<Questionnaire> Questionnaire { get; set; }
