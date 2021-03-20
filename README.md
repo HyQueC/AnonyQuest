@@ -2,6 +2,8 @@
 
 O referente projeto foi desenvolvido em acompanhamento das atividades e conteúdo presentes no curso sobre Blazor da plataforma Udemy (https://www.udemy.com/share/102l0iCEUYc1hTTXo=/), gerenciada pelo engenheiro de Software, *Felipe Gavilán*.
 
+Foi utilizado Blazor, IdentityServer4, Entity Framework Core e outros afins versionados para .Net Core 3.1
+
 ## Instruções de execução: 
 
 - após clonar o projeto na máquina local, 
